@@ -28,8 +28,8 @@ VOICE_CHANNEL_ID=YOUR_VOICE_CHANNEL_ID
 **Note (Discord Portal / Intents):**
 Ensure to enable **Privileged Gateway Intents** only if you need them, but for this bot normally this is enough:
 
-- Server Members Intent: **NO necesario**
-- Presence Intent: **NO necesario**
+- Server Members Intent: **NOT necessary**
+- Presence Intent: **NOT necessary**
 
 In code we use:
 
