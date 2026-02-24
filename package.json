@@ -1,0 +1,20 @@
+{
+  "name": "discord247botvoice",
+  "version": "1.0.0",
+  "description": "Basic Discord bot that stays connected to a voice channel 24/7 and auto-reconnects.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Happyuky7",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@discordjs/voice": "^0.19.0",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.3.1"
+  }
+}
