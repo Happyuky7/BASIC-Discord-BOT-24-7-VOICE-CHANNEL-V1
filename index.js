@@ -10,6 +10,10 @@ const {
 const TOKEN = process.env.DISCORD_TOKEN;
 const GUILD_ID = process.env.GUILD_ID;
 const VOICE_CHANNEL_ID = process.env.VOICE_CHANNEL_ID;
+const TIME_RECONNECT_RAW = Number.parseInt(process.env.TIME_RECONNECT ?? "", 10);
+const TIME_RECONNECT = Number.isFinite(TIME_RECONNECT_RAW) && TIME_RECONNECT_RAW > 0
+  ? TIME_RECONNECT_RAW
+  : 3000;
 
 if (!TOKEN || !GUILD_ID || !VOICE_CHANNEL_ID) {
   console.error("Missing variables in .env: DISCORD_TOKEN, GUILD_ID, VOICE_CHANNEL_ID");
@@ -21,6 +25,21 @@ const client = new Client({
 });
 
 let reconnectLock = false;
+let started = false;
+let reconnectTimer = null;
+
+function scheduleReconnect(reason) {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+
+  console.warn(`[VOICE] Reconnecting in ${TIME_RECONNECT}ms... (${reason})`);
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    connect24_7().catch((e) => console.error("Error reconnecting:", e));
+  }, TIME_RECONNECT);
+}
 
 async function connect24_7() {
   if (reconnectLock) return;
@@ -71,38 +90,43 @@ async function connect24_7() {
         connection.destroy();
       } catch {}
 
-      setTimeout(() => {
-        connect24_7().catch((e) => console.error("Error reconnecting:", e));
-      }, 3_000);
+      scheduleReconnect("Disconnected");
     });
 
     connection.on(VoiceConnectionStatus.Destroyed, () => {
-      console.warn("[VOICE] Connection destroyed. Retrying in 3s...");
-      setTimeout(() => {
-        connect24_7().catch((e) => console.error("Error reconnecting:", e));
-      }, 3_000);
+      console.warn("[VOICE] Connection destroyed.");
+      scheduleReconnect("Destroyed");
     });
 
   } catch (err) {
     console.error("[VOICE] No pude conectar:", err?.message || err);
-    setTimeout(() => {
-      connect24_7().catch((e) => console.error("Error reconnecting:", e));
-    }, 5_000);
+    scheduleReconnect("Error");
   } finally {
     reconnectLock = false;
   }
 }
 
-client.once("ready", async () => {
+async function onClientReady() {
+  if (started) return;
+  started = true;
   console.log(`Listo como ${client.user.tag}`);
   await connect24_7();
-});
+}
+
+client.once("ready", onClientReady);
+client.once("clientReady", onClientReady);
 
 process.on("SIGINT", () => {
   try {
     const conn = getVoiceConnection(GUILD_ID);
     if (conn) conn.destroy();
   } catch {}
+
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+
   process.exit(0);
 });
 

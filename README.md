@@ -23,6 +23,7 @@ BASIC Discord bot that stays connected to a voice channel **24/7** and automatic
 DISCORD_TOKEN=YOUR_BOT_TOKEN
 GUILD_ID=YOUR_SERVER_ID
 VOICE_CHANNEL_ID=YOUR_VOICE_CHANNEL_ID
+TIME_RECONNECT=3000
 ```
 
 **Note (Discord Portal / Intents):**
